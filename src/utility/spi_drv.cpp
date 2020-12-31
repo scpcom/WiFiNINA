@@ -44,6 +44,10 @@
 #define digitalWrite(pin, value) FPGA.digitalWrite(pin, value)
 #endif
 
+#ifndef NINA_GPIO0
+#define NINA_GPIO0 -1
+#endif
+
 //#define _DEBUG_
 extern "C" {
 #include "utility/debug.h"
@@ -94,17 +98,21 @@ void SpiDrv::begin()
       pinMode(SLAVESELECT, OUTPUT);
       pinMode(SLAVEREADY, INPUT);
       pinMode(SLAVERESET, OUTPUT);
+#if NINA_GPIO0 >= 0
       pinMode(NINA_GPIO0, OUTPUT);
 
       digitalWrite(NINA_GPIO0, HIGH);
+#endif
       digitalWrite(SLAVESELECT, HIGH);
       digitalWrite(SLAVERESET, inverted_reset ? HIGH : LOW);
       delay(10);
       digitalWrite(SLAVERESET, inverted_reset ? LOW : HIGH);
       delay(750);
 
+#if NINA_GPIO0 >= 0
       digitalWrite(NINA_GPIO0, LOW);
       pinMode(NINA_GPIO0, INPUT);
+#endif
 
 #ifdef _DEBUG_
 	  INIT_TRIGGER()
@@ -578,7 +586,11 @@ void SpiDrv::sendCmd(uint8_t cmd, uint8_t numParam)
 
 int SpiDrv::available()
 {
+#if NINA_GPIO0 >= 0
     return (digitalRead(NINA_GPIO0) != LOW);
+#else
+    return true;
+#endif
 }
 
 SpiDrv spiDrv;
